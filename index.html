@@ -338,6 +338,24 @@
       color: #fff;
       box-shadow: 0 4px 18px #0006;
     }
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+    @media (max-width: 700px) {
+      .table-responsive {
+        margin: 0 -8px;
+        padding: 0 2px;
+      }
+      table {
+        min-width: 700px;
+        font-size: 0.93em;
+      }
+      th, td {
+        padding: 8px 4px;
+        white-space: nowrap;
+      }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
@@ -515,7 +533,7 @@
       loadData();
     }
     function renderProducten() {
-      let table = `<table><thead><tr><th>Naam</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th><th>Acties</th></tr></thead><tbody>`;
+      let table = `<div class='table-responsive'><table><thead><tr><th>Naam</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
       table += producten.map((p,i) => `
         <tr>
           <td>${p.naam}</td>
@@ -526,12 +544,8 @@
           <td>${p.suiker}</td>
           <td>${p.vezel}</td>
           <td>${p.eiwit}</td>
-          <td class='product-actions'>
-            <button onclick="editProduct(${i})">✏️</button>
-            <button onclick="deleteProduct(${i})">🗑️</button>
-          </td>
         </tr>`).join('');
-      table += '</tbody></table>';
+      table += '</tbody></table></div>';
       document.getElementById('productList').innerHTML = table;
     }
     function renderEetSelect() {
