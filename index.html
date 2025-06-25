@@ -359,8 +359,12 @@
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 </head>
 <body>
+  <div id="user-id-bar" style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:18px;gap:12px;">
+    <button id="show-id-btn" class="toevoegen-btn" style="padding:8px 18px;">Mijn ID</button>
+  </div>
   <div class="container">
     <div class="tabs">
       <button class="tab-btn active" onclick="openTab(0)">Producten</button>
@@ -455,6 +459,11 @@
     let producten = [];
     let dagboek = [];
     let dagboekDate = new Date();
+    // Supabase setup
+    const SUPABASE_URL = 'https://ailacxfprfqddsutzsof.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpbGFjeGZwcmZxZGRzdXR6c29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NDg3NTMsImV4cCI6MjA2NjQyNDc1M30.E-P_23zXKON95wKh3AZvmgVDD4f4cBeKT76kJzBQbFk';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     // Init sql.js
     window.initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` }).then(SQLLib => {
       SQL = SQLLib;
@@ -732,6 +741,24 @@
       renderDagboek();
       renderOverzicht();
     });
+    window.addEventListener('DOMContentLoaded', () => {
+      const showIdBtn = document.getElementById('show-id-btn');
+      if (showIdBtn) {
+        showIdBtn.onclick = () => {
+          navigator.clipboard.writeText(USER_ID);
+          alert('Jouw ID is gekopieerd naar het klembord:\n' + USER_ID + '\nGebruik dit ID op een ander apparaat om je data te koppelen.');
+        };
+      }
+    });
+    function getOrCreateUserId() {
+      let id = localStorage.getItem('user_id');
+      if(!id) {
+        id = 'user_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+        localStorage.setItem('user_id', id);
+      }
+      return id;
+    }
+    var USER_ID = getOrCreateUserId();
   </script>
 </body>
 </html>
