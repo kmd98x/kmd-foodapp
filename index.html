@@ -356,26 +356,33 @@
         white-space: nowrap;
       }
     }
+    @media (max-width: 600px) {
+      .id-knoppen-bar {
+        flex-direction: column;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 16px !important;
+      }
+      .id-knoppen-bar button {
+        width: 100%;
+        max-width: 320px;
+      }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <div id="user-id-bar" style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:18px;gap:12px;">
+  <!-- ID-knoppen helemaal boven, rechts uitgelijnd -->
+  <div id="id-knoppen-bar" class="id-knoppen-bar" style="width:100%;display:flex;justify-content:flex-end;align-items:center;margin-bottom:18px;gap:12px;">
     <button id="show-id-btn" class="toevoegen-btn" style="padding:8px 18px;">Mijn ID</button>
+    <button id="use-id-btn" class="toevoegen-btn" style="padding:8px 18px;">Gebruik bestaand ID</button>
   </div>
   <div class="container">
     <div class="tabs">
       <button class="tab-btn active" onclick="openTab(0)">Producten</button>
       <button class="tab-btn" onclick="openTab(1)">Dagboek</button>
-    </div>
-    <div class="sqlite-actions">
-      <button onclick="exportDB()">Database exporteren</button>
-      <label style="display:inline-block;cursor:pointer;">
-        <input type="file" id="importFile" style="display:none" onchange="importDB(event)">
-        Database importeren
-      </label>
     </div>
     <div class="tab-content active" id="tab-producten">
       <div style="margin-bottom: var(--spacing);">
@@ -747,6 +754,16 @@
         showIdBtn.onclick = () => {
           navigator.clipboard.writeText(USER_ID);
           alert('Jouw ID is gekopieerd naar het klembord:\n' + USER_ID + '\nGebruik dit ID op een ander apparaat om je data te koppelen.');
+        };
+      }
+      const useIdBtn = document.getElementById('use-id-btn');
+      if (useIdBtn) {
+        useIdBtn.onclick = () => {
+          const newId = prompt('Plak hier je bestaande ID:');
+          if (newId && newId.trim().length > 0) {
+            localStorage.setItem('user_id', newId.trim());
+            location.reload();
+          }
         };
       }
     });
