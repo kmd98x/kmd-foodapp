@@ -664,7 +664,7 @@
         let value = Math.min(totaal[d.key], doelen[d.key]);
         let rest = Math.max(doelen[d.key] - totaal[d.key], 0);
         let id = 'pie_' + d.key;
-        pieChartsRow += `<div class='pie-chart-col' style='flex-direction:column;align-items:center;min-width:120px;margin-bottom:18px;background:#161616;'>
+        pieChartsRow += `<div class='pie-chart-col' style='flex-direction:column;align-items:center;min-width:120px;margin-bottom:18px;'>
           <div style='position:relative;display:inline-block;'>
             <canvas id='${id}' width='100' height='100'></canvas>
             <span style='position:absolute;left:0;top:0;width:100px;height:100px;display:flex;align-items:center;justify-content:center;font-size:1em;font-weight:600;pointer-events:none;letter-spacing:-1px;color:var(--accent-glow);'>${value.toFixed(0)}/${doelen[d.key]}</span>
