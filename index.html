@@ -6,25 +6,42 @@
   <title>Mijn Eetdagboek</title>
   <style>
     :root {
-      --accent: #5A4FCF;
-      --background: #F5F5F7;
-      --text: #333;
-      --card-bg: #FFF;
-      --border-radius: 12px;
-      --spacing: 20px;
+      --accent: #bdbdbd; /* Lichtgrijs accent */
+      --accent-glow: #edededcc; /* Witgrijs glow/transparant */
+      --background: #111111; /* Zwart/donkergrijs */
+      --background-alt: #191919;
+      --text: #e0e0e0;
+      --text-soft: #b0b0b0;
+      --card-bg: rgba(40,40,40,0.85);
+      --border-radius: 18px;
+      --spacing: 22px;
+      --shadow: 0 8px 32px 0 rgba(0,0,0,0.22);
+      --glass-blur: 18px;
+      --glass-border: 1.5px solid rgba(200,200,200,0.13);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Helvetica Neue', sans-serif;
-      background: var(--background);
+      display: flex;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #111111 0%, #191919 100%);
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
       color: var(--text);
       padding: var(--spacing);
       min-height: 100vh;
+      letter-spacing: 0.01em;
     }
 
-    h1 { text-align: center; margin-bottom: var(--spacing); }
+    h1 {
+      text-align: center;
+      margin-bottom: var(--spacing);
+      font-size: 2.1em;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: var(--accent-glow);
+      text-shadow: 0 2px 24px #ededed22;
+    }
 
     .tabs {
       display: flex;
@@ -35,19 +52,28 @@
     }
 
     .tabs button {
-      padding: 12px 28px;
-      background: var(--accent);
-      color: white;
-      border: none;
+      padding: 12px 32px;
+      background: rgba(60,60,60,0.18);
+      color: var(--text-soft);
+      border: var(--glass-border);
       border-radius: var(--border-radius);
       cursor: pointer;
-      font-size: 1.1em;
+      font-size: 1.13em;
       margin-bottom: 6px;
-      transition: background 0.2s;
+      font-weight: 600;
+      box-shadow: 0 2px 16px #0002;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
     }
 
     .tabs button.active {
-      background: #3d368a;
+      background: rgba(200,200,200,0.10);
+      color: var(--accent-glow);
+      border: 2px solid var(--accent-glow);
+      box-shadow: 0 2px 24px #ededed22;
+      font-weight: 700;
+      text-shadow: 0 2px 8px #ededed33;
     }
 
     .tab-content { display: none; }
@@ -67,34 +93,58 @@
 
     .card {
       background: var(--card-bg);
-      padding: 28px 22px;
+      padding: 44px 32px 44px 32px;
       margin-bottom: var(--spacing);
       border-radius: var(--border-radius);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      box-shadow: var(--shadow);
       flex: 1 1 350px;
       min-width: 320px;
+      border: var(--glass-border);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
     }
 
     label { display: block; margin: 12px 0 6px; font-weight: 500; }
     input, select {
-      padding: 10px;
+      padding: 15px 18px;
       width: 100%;
-      border: 1px solid #ccc;
+      border: 1.5px solid rgba(200,200,200,0.13);
+      background: rgba(60,60,60,0.13);
+      color: var(--text);
       border-radius: var(--border-radius);
-      margin-bottom: 14px;
+      margin-bottom: 22px;
       font-size: 1em;
+      font-family: inherit;
+      transition: border 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 4px #0002;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border: 1.5px solid var(--accent-glow);
+      box-shadow: 0 0 0 2px #ededed33;
     }
 
     button[type="submit"], .card button:not(.tab-btn) {
       padding: 12px 24px;
-      background: var(--accent);
-      color: white;
-      border: none;
+      background: rgba(200,200,200,0.10);
+      color: var(--accent-glow);
+      border: var(--glass-border);
       border-radius: var(--border-radius);
       cursor: pointer;
       margin-top: 10px;
       font-size: 1em;
-      transition: background 0.2s;
+      font-weight: 600;
+      box-shadow: 0 2px 16px #0002;
+      transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+    }
+
+    button[type="submit"]:hover, .card button:not(.tab-btn):hover {
+      background: var(--accent-glow);
+      color: var(--background);
+      box-shadow: 0 4px 24px #ededed33;
     }
 
     .product-actions {
@@ -107,6 +157,18 @@
       padding: 4px 10px;
       font-size: 0.95em;
       margin-top: 0;
+      background: rgba(60,60,60,0.13);
+      color: var(--accent-glow);
+      border: var(--glass-border);
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+    }
+
+    .product-actions button:hover {
+      background: var(--accent-glow);
+      color: var(--background);
     }
 
     .search-bar {
@@ -114,7 +176,9 @@
       width: 100%;
       padding: 8px;
       border-radius: var(--border-radius);
-      border: 1px solid #ccc;
+      border: 1.5px solid rgba(200,200,200,0.13);
+      background: rgba(60,60,60,0.13);
+      color: var(--text);
       font-size: 1em;
     }
 
@@ -126,34 +190,49 @@
     }
 
     .sqlite-actions button, .sqlite-actions input[type="file"] {
-      background: #eee;
-      color: #333;
-      border: 1px solid #bbb;
-      border-radius: 8px;
-      padding: 8px 16px;
+      background: rgba(60,60,60,0.13);
+      color: var(--accent-glow);
+      border: var(--glass-border);
+      border-radius: 10px;
+      padding: 8px 18px;
       font-size: 1em;
       cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+    }
+
+    .sqlite-actions button:hover, .sqlite-actions input[type="file"]:hover {
+      background: var(--accent-glow);
+      color: var(--background);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 14px;
-      background: #fff;
+      background: rgba(40,40,40,0.85);
+      color: var(--text);
+      box-shadow: var(--shadow);
       border-radius: var(--border-radius);
-      overflow: hidden;
-      font-size: 0.97em;
+      border: var(--glass-border);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
     }
 
     th, td {
       padding: 12px 7px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #222;
       text-align: center;
+      color: var(--text);
     }
 
     th {
-      background: #f0f0fa;
-      font-weight: 600;
+      background: rgba(60,60,60,0.18);
+      font-weight: 700;
+      color: var(--accent-glow);
+      text-shadow: 0 2px 8px #ededed33;
     }
 
     tr:last-child td {
@@ -174,33 +253,51 @@
       gap: 8px;
       margin-bottom: 10px;
       min-width: 120px;
+      background: rgba(40,40,40,0.85);
+      border-radius: 16px;
+      box-shadow: 0 2px 16px #0002;
+      padding: 8px 0 10px 0;
+      border: var(--glass-border);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
     }
 
     .pie-chart-col canvas {
-      width: 80px !important;
-      height: 80px !important;
+      width: 100px !important;
+      height: 100px !important;
       margin-bottom: 0;
+      background: transparent;
+      box-shadow: 0 0 0 2px var(--accent-glow);
+      border-radius: 50%;
+      filter: blur(0.5px);
     }
 
     .pie-label {
-      font-size: 0.95em;
+      font-size: 1.05em;
       text-align: left;
       min-width: 60px;
+      color: var(--accent-glow);
+      text-shadow: 0 2px 8px #ededed33;
     }
 
     .moment-block {
       margin-bottom: 28px;
-      background: #f8f8fc;
-      border-radius: 10px;
+      background: rgba(40,40,40,0.85);
+      border-radius: 18px;
       padding: 18px 10px 10px 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+      box-shadow: var(--shadow);
+      border: var(--glass-border);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
     }
 
     .moment-title {
-      font-weight: bold;
-      font-size: 1.1em;
+      font-weight: 700;
+      font-size: 1.13em;
       margin-bottom: 8px;
-      color: var(--accent);
+      color: var(--accent-glow);
+      letter-spacing: 0.01em;
+      text-shadow: 0 2px 8px #ededed33;
     }
 
     /* Responsive cards voor producten en dagboek */
@@ -213,8 +310,8 @@
       table, thead, tbody, th, td, tr { display: block; }
       table { border: none; }
       thead { display: none; }
-      tr { background: #fff; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-      td { text-align: left; padding: 10px 14px; border: none; border-bottom: 1px solid #f0f0fa; position: relative; }
+      tr { background: #222; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+      td { text-align: left; padding: 10px 14px; border: none; border-bottom: 1px solid #333; position: relative; }
       td:before {
         content: attr(data-label);
         font-weight: bold;
@@ -232,19 +329,18 @@
       .card { padding: 12px 2px; }
       h1 { font-size: 1.1em; }
       .tabs button { font-size: 1em; padding: 10px 10px; }
-      .pie-chart-col canvas { width: 56px !important; height: 56px !important; }
+      .pie-chart-col canvas { width: 90vw !important; height: 90vw !important; max-width: 180px !important; max-height: 180px !important; }
+      .pie-chart-col { min-width: unset; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 </head>
 <body>
-  <h1>Mijn Eetdagboek</h1>
-
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="openTab(0)">📦 Producten</button>
-      <button class="tab-btn" onclick="openTab(1)">🍽️ Dagboek</button>
+      <button class="tab-btn active" onclick="openTab(0)">Producten</button>
+      <button class="tab-btn" onclick="openTab(1)">Dagboek</button>
     </div>
     <div class="sqlite-actions">
       <button onclick="exportDB()">Database exporteren</button>
@@ -280,6 +376,13 @@
       </div>
     </div>
     <div class="tab-content" id="tab-dagboek">
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:18px;font-size:1.13em;font-weight:600;">
+          <button onclick="changeDagboekDag(-1)" style="background:none;border:none;color:var(--accent-glow);font-size:1.5em;cursor:pointer;">&#8592;</button>
+          <span id="dagboekDatum"></span>
+          <button onclick="changeDagboekDag(1)" style="background:none;border:none;color:var(--accent-glow);font-size:1.5em;cursor:pointer;">&#8594;</button>
+        </div>
+      </div>
       <div class="flex">
         <div class="card">
           <h2>Product eten</h2>
@@ -327,6 +430,7 @@
     let editIndex = null;
     let producten = [];
     let dagboek = [];
+    let dagboekDate = new Date();
     // Init sql.js
     window.initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` }).then(SQLLib => {
       SQL = SQLLib;
@@ -352,14 +456,14 @@
       }) || [];
       renderProducten();
       renderEetSelect();
-      renderDagboek();
+      updateDagboekDatum();
       renderOverzicht();
     }
     function openTab(idx) {
       document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
       document.querySelectorAll('.tab-content').forEach((tab,i) => tab.classList.toggle('active', i===idx));
       if(idx===0) renderProducten();
-      if(idx===1) { renderEetSelect(); renderDagboek(); renderOverzicht(); }
+      if(idx===1) { renderEetSelect(); updateDagboekDatum(); renderOverzicht(); }
     }
     function addProduct() {
       let naam = document.getElementById('productNaam').value;
@@ -451,26 +555,50 @@
       let options = filtered.map((p, i) => `<option value='${i}'>${p.naam}</option>`).join('');
       document.getElementById('eetProduct').innerHTML = options;
     }
+    function getDateKey(date) {
+      return date.toISOString().slice(0,10);
+    }
+    function formatDateFancy(date) {
+      const dagen = ['Zondag','Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag'];
+      const maanden = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+      return `${dagen[date.getDay()]} ${date.getDate()} ${maanden[date.getMonth()]} ${date.getFullYear()}`;
+    }
+    function updateDagboekDatum() {
+      document.getElementById('dagboekDatum').textContent = formatDateFancy(dagboekDate);
+      renderDagboek();
+      renderOverzicht();
+    }
+    function changeDagboekDag(delta) {
+      dagboekDate.setDate(dagboekDate.getDate() + delta);
+      updateDagboekDatum();
+    }
     function logEten() {
       let productIndex = document.getElementById('eetProduct').value;
       let gram = parseFloat(document.getElementById('eetGram').value) || 0;
       let moment = document.getElementById('eetMoment').value;
       let p = producten[productIndex];
       if(!p || !gram) return;
-      db.run(`INSERT INTO dagboek (product_id, gram, moment, tijd) VALUES (?, ?, ?, ?)`, [p.id, gram, moment, Date.now()]);
+      // Sla dagboek op met datum als extra kolom
+      let dateKey = getDateKey(dagboekDate);
+      // Voeg kolom toe als die nog niet bestaat
+      try { db.run('ALTER TABLE dagboek ADD COLUMN datum TEXT'); } catch(e) {}
+      db.run(`INSERT INTO dagboek (product_id, gram, moment, tijd, datum) VALUES (?, ?, ?, ?, ?)`, [p.id, gram, moment, Date.now(), dateKey]);
       saveDB();
       loadData();
       document.getElementById('eetGram').value = '';
     }
     function renderDagboek() {
-      if(dagboek.length === 0) {
+      // Filter dagboek op geselecteerde dag
+      let dateKey = getDateKey(dagboekDate);
+      let dagboekFiltered = dagboek.filter(e => (e.datum || getDateKey(new Date(e.tijd))) === dateKey);
+      if(dagboekFiltered.length === 0) {
         document.getElementById('dagboekList').innerHTML = '<em>Geen producten gegeten.</em>';
         return;
       }
       let isMobile = window.innerWidth <= 700;
       // Groepeer per moment
       let momenten = {};
-      dagboek.forEach(e => {
+      dagboekFiltered.forEach(e => {
         if(!momenten[e.moment]) momenten[e.moment] = [];
         momenten[e.moment].push(e);
       });
@@ -506,12 +634,7 @@
               <td>${((p.eiwit||0)*g).toFixed(1)}</td>
             </tr>`;
           } else {
-            html += `<div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:10px;padding:10px 8px;">
-              <div style="font-weight:bold;">${p.naam||''}</div>
-              <div>Gram: <b>${e.gram}</b></div>
-              <div>Kcal: <b>${((p.kcal||0)*g).toFixed(1)}</b> | Vet: <b>${((p.vet||0)*g).toFixed(1)}</b> | Verz. vet: <b>${((p.verzadigd||0)*g).toFixed(1)}</b></div>
-              <div>Kh: <b>${((p.kh||0)*g).toFixed(1)}</b> | Suiker: <b>${((p.suiker||0)*g).toFixed(1)}</b> | Vezel: <b>${((p.vezel||0)*g).toFixed(1)}</b> | Eiwit: <b>${((p.eiwit||0)*g).toFixed(1)}</b></div>
-            </div>`;
+            html += `<div style=\"background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:10px;padding:10px 8px;\">\n              <div style=\"font-weight:bold;\">${p.naam||''}</div>\n              <div>Gram: <b>${e.gram}</b></div>\n              <div>Kcal: <b>${((p.kcal||0)*g).toFixed(1)}</b> | Vet: <b>${((p.vet||0)*g).toFixed(1)}</b> | Verz. vet: <b>${((p.verzadigd||0)*g).toFixed(1)}</b></div>\n              <div>Kh: <b>${((p.kh||0)*g).toFixed(1)}</b> | Suiker: <b>${((p.suiker||0)*g).toFixed(1)}</b> | Vezel: <b>${((p.vezel||0)*g).toFixed(1)}</b> | Eiwit: <b>${((p.eiwit||0)*g).toFixed(1)}</b></div>\n            </div>`;
           }
         });
         if(!isMobile) {
@@ -552,12 +675,12 @@
         let value = Math.min(totaal[d.key], doelen[d.key]);
         let rest = Math.max(doelen[d.key] - totaal[d.key], 0);
         let id = 'pie_' + d.key;
-        pieChartsRow += `<div class='pie-chart-col' style='flex-direction:column;align-items:center;min-width:100px;margin-bottom:18px;'>
+        pieChartsRow += `<div class='pie-chart-col' style='flex-direction:column;align-items:center;min-width:120px;margin-bottom:18px;'>
           <div style='position:relative;display:inline-block;'>
-            <canvas id='${id}' width='80' height='80'></canvas>
-            <span style='position:absolute;left:0;top:0;width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:0.92em;font-weight:500;pointer-events:none;letter-spacing:-1px;'>${value.toFixed(0)}/${doelen[d.key]}</span>
+            <canvas id='${id}' width='100' height='100'></canvas>
+            <span style='position:absolute;left:0;top:0;width:100px;height:100px;display:flex;align-items:center;justify-content:center;font-size:1em;font-weight:600;pointer-events:none;letter-spacing:-1px;color:var(--accent-glow);'>${value.toFixed(0)}/${doelen[d.key]}</span>
           </div>
-          <span class='pie-label' style='margin-top:8px;font-size:1.05em;'>${d.label}</span>
+          <span class='pie-label' style='margin-top:8px;font-size:1.08em;'>${d.label}</span>
         </div>`;
         setTimeout(() => {
           let ctx = document.getElementById(id).getContext('2d');
