@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mijn Eetdagboek</title>
+  <style>
+    :root {
+      --accent: #5A4FCF;
+      --background: #F5F5F7;
+      --text: #333;
+      --card-bg: #FFF;
+      --border-radius: 12px;
+      --spacing: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      padding: var(--spacing);
+      min-height: 100vh;
+    }
+
+    h1 { text-align: center; margin-bottom: var(--spacing); }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: var(--spacing);
+      flex-wrap: wrap;
+    }
+
+    .tabs button {
+      padding: 12px 28px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 1.1em;
+      margin-bottom: 6px;
+      transition: background 0.2s;
+    }
+
+    .tabs button.active {
+      background: #3d368a;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .container {
+      max-width: 950px;
+      margin: 0 auto;
+    }
+
+    .flex {
+      display: flex;
+      gap: var(--spacing);
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 28px 22px;
+      margin-bottom: var(--spacing);
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      flex: 1 1 350px;
+      min-width: 320px;
+    }
+
+    label { display: block; margin: 12px 0 6px; font-weight: 500; }
+    input, select {
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+      margin-bottom: 14px;
+      font-size: 1em;
+    }
+
+    button[type="submit"], .card button:not(.tab-btn) {
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      background: #fff;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      font-size: 0.97em;
+    }
+
+    th, td {
+      padding: 10px 7px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f0fa;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pie-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 18px;
+      margin-bottom: 10px;
+    }
+
+    .pie-labels {
+      display: flex;
+      gap: 18px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .pie-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.98em;
+    }
+
+    .pie-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    @media (max-width: 1000px) {
+      .container { max-width: 100vw; }
+      .flex { flex-direction: column; gap: 0; }
+      .card { min-width: unset; }
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 16px 6px; }
+      h1 { font-size: 1.3em; }
+      .tabs button { font-size: 1em; padding: 10px 10px; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Mijn Eetdagboek</h1>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab(0)">📦 Producten</button>
+      <button class="tab-btn" onclick="openTab(1)">🍽️ Dagboek & Overzicht</button>
+    </div>
+    <div class="tab-content active" id="tab-producten">
+      <div class="card">
+        <h2>Nieuw product toevoegen</h2>
+        <label>Naam product:</label>
+        <input type="text" id="productNaam">
+        <label>Kcal / 100g:</label>
+        <input type="number" id="productKcal">
+        <label>Vet / 100g:</label>
+        <input type="number" id="productVet">
+        <label>Verzadigd vet / 100g:</label>
+        <input type="number" id="productVerzadigd">
+        <label>Koolhydraten / 100g:</label>
+        <input type="number" id="productKh">
+        <label>Suikers / 100g:</label>
+        <input type="number" id="productSuiker">
+        <label>Vezels / 100g:</label>
+        <input type="number" id="productVezel">
+        <label>Eiwit / 100g:</label>
+        <input type="number" id="productEiwit">
+        <button onclick="addProduct()">Toevoegen</button>
+      </div>
+      <div class="card">
+        <h2>Mijn producten</h2>
+        <div id="productList"></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-dagboek">
+      <div class="flex">
+        <div class="card">
+          <h2>Product eten</h2>
+          <label>Product:</label>
+          <select id="eetProduct"></select>
+          <label>Gram:</label>
+          <input type="number" id="eetGram">
+          <label>Moment:</label>
+          <select id="eetMoment">
+            <option>Ontbijt</option>
+            <option>Lunch</option>
+            <option>Tussendoor</option>
+            <option>Diner</option>
+            <option>Voor de training</option>
+            <option>Na de training</option>
+          </select>
+          <button onclick="logEten()">Toevoegen</button>
+        </div>
+        <div class="card">
+          <h2>Dagboek</h2>
+          <div id="dagboekList"></div>
+        </div>
+        <div class="card">
+          <h2>Overzicht</h2>
+          <div class="pie-container">
+            <canvas id="pieChart" width="180" height="180"></canvas>
+            <div class="pie-labels" id="pieLabels"></div>
+          </div>
+          <div id="overzichtData"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Doelen (kan je aanpassen)
+    const doelen = {
+      kcal: 1600,
+      vet: 59,
+      verzadigd: 20,
+      kh: 140,
+      suiker: 50,
+      vezel: 30,
+      eiwit: 120
+    };
+    let producten = JSON.parse(localStorage.getItem('producten')) || [];
+    let dagboek = JSON.parse(localStorage.getItem('dagboek')) || [];
+    let pieChart;
+
+    function openTab(idx) {
+      document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+      document.querySelectorAll('.tab-content').forEach((tab,i) => tab.classList.toggle('active', i===idx));
+      if(idx===0) renderProducten();
+      if(idx===1) { renderEetSelect(); renderDagboek(); renderOverzicht(); }
+    }
+
+    function addProduct() {
+      let naam = document.getElementById('productNaam').value;
+      let kcal = parseFloat(document.getElementById('productKcal').value) || 0;
+      let vet = parseFloat(document.getElementById('productVet').value) || 0;
+      let verzadigd = parseFloat(document.getElementById('productVerzadigd').value) || 0;
+      let kh = parseFloat(document.getElementById('productKh').value) || 0;
+      let suiker = parseFloat(document.getElementById('productSuiker').value) || 0;
+      let vezel = parseFloat(document.getElementById('productVezel').value) || 0;
+      let eiwit = parseFloat(document.getElementById('productEiwit').value) || 0;
+      producten.push({ naam, kcal, vet, verzadigd, kh, suiker, vezel, eiwit });
+      localStorage.setItem('producten', JSON.stringify(producten));
+      renderProducten();
+      renderEetSelect();
+    }
+
+    function renderProducten() {
+      if(producten.length === 0) {
+        document.getElementById('productList').innerHTML = '<em>Geen producten toegevoegd.</em>';
+        return;
+      }
+      let table = `<table><thead><tr><th>Naam</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
+      table += producten.map(p => `
+        <tr>
+          <td>${p.naam}</td>
+          <td>${p.kcal}</td>
+          <td>${p.vet}</td>
+          <td>${p.verzadigd}</td>
+          <td>${p.kh}</td>
+          <td>${p.suiker}</td>
+          <td>${p.vezel}</td>
+          <td>${p.eiwit}</td>
+        </tr>`).join('');
+      table += '</tbody></table>';
+      document.getElementById('productList').innerHTML = table;
+    }
+
+    function renderEetSelect() {
+      let options = producten.map((p, i) => `<option value='${i}'>${p.naam}</option>`).join('');
+      document.getElementById('eetProduct').innerHTML = options;
+    }
+
+    function logEten() {
+      let i = document.getElementById('eetProduct').value;
+      let gram = parseFloat(document.getElementById('eetGram').value) || 0;
+      let moment = document.getElementById('eetMoment').value;
+      if(!producten[i] || !gram) return;
+      dagboek.push({ product: producten[i], gram, moment });
+      localStorage.setItem('dagboek', JSON.stringify(dagboek));
+      renderDagboek();
+      renderOverzicht();
+    }
+
+    function renderDagboek() {
+      if(dagboek.length === 0) {
+        document.getElementById('dagboekList').innerHTML = '<em>Geen producten gegeten.</em>';
+        return;
+      }
+      let table = `<table><thead><tr><th>Moment</th><th>Product</th><th>Gram</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
+      table += dagboek.map(e => {
+        let p = e.product;
+        let g = e.gram/100;
+        return `<tr>
+          <td>${e.moment}</td>
+          <td>${p.naam}</td>
+          <td>${e.gram}</td>
+          <td>${(p.kcal*g).toFixed(1)}</td>
+          <td>${(p.vet*g).toFixed(1)}</td>
+          <td>${(p.verzadigd*g).toFixed(1)}</td>
+          <td>${(p.kh*g).toFixed(1)}</td>
+          <td>${(p.suiker*g).toFixed(1)}</td>
+          <td>${(p.vezel*g).toFixed(1)}</td>
+          <td>${(p.eiwit*g).toFixed(1)}</td>
+        </tr>`;
+      }).join('');
+      table += '</tbody></table>';
+      document.getElementById('dagboekList').innerHTML = table;
+    }
+
+    function renderOverzicht() {
+      let totaal = { kcal: 0, vet: 0, verzadigd: 0, kh: 0, suiker: 0, vezel: 0, eiwit: 0 };
+      dagboek.forEach(e => {
+        let g = e.gram/100;
+        totaal.kcal += e.product.kcal * g;
+        totaal.vet += e.product.vet * g;
+        totaal.verzadigd += e.product.verzadigd * g;
+        totaal.kh += e.product.kh * g;
+        totaal.suiker += e.product.suiker * g;
+        totaal.vezel += e.product.vezel * g;
+        totaal.eiwit += e.product.eiwit * g;
+      });
+      // Pie chart data (voor Kcal, maar je kan ook andere kiezen)
+      let pieData = [
+        Math.min(totaal.kcal, doelen.kcal),
+        Math.max(doelen.kcal - totaal.kcal, 0)
+      ];
+      let pieColors = ["#5A4FCF", "#e0e0e0"];
+      let ctx = document.getElementById('pieChart').getContext('2d');
+      if(pieChart) pieChart.destroy();
+      pieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Gegeten', 'Resterend'],
+          datasets: [{
+            data: pieData,
+            backgroundColor: pieColors,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          cutout: '70%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': ' + context.parsed + ' kcal';
+                }
+              }
+            }
+          }
+        }
+      });
+      // Pie labels
+      document.getElementById('pieLabels').innerHTML = `
+        <span class="pie-label"><span class="pie-dot" style="background:#5A4FCF"></span> Gegeten: ${totaal.kcal.toFixed(0)} kcal</span>
+        <span class="pie-label"><span class="pie-dot" style="background:#e0e0e0"></span> Resterend: ${Math.max(doelen.kcal-totaal.kcal,0).toFixed(0)} kcal</span>
+        <span class="pie-label"><b>Doel: ${doelen.kcal} kcal</b></span>
+      `;
+      // Tabel met alle totalen
+      let table = `<table><thead><tr><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
+      table += `<tr>
+        <td>${totaal.kcal.toFixed(1)} / ${doelen.kcal}</td>
+        <td>${totaal.vet.toFixed(1)} / ${doelen.vet}</td>
+        <td>${totaal.verzadigd.toFixed(1)} / ${doelen.verzadigd}</td>
+        <td>${totaal.kh.toFixed(1)} / ${doelen.kh}</td>
+        <td>${totaal.suiker.toFixed(1)} / ${doelen.suiker}</td>
+        <td>${totaal.vezel.toFixed(1)} / ${doelen.vezel}</td>
+        <td>${totaal.eiwit.toFixed(1)} / ${doelen.eiwit}</td>
+      </tr></tbody></table>`;
+      document.getElementById('overzichtData').innerHTML = table;
+    }
+
+    // Initial rendering
+    renderProducten();
+    renderEetSelect();
+    renderDagboek();
+    renderOverzicht();
+  </script>
+</body>
+</html>
