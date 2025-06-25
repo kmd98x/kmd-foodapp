@@ -92,7 +92,7 @@
     }
 
     .card {
-      background: var(--card-bg);
+      background: rgba(16,16,16,0.98);
       padding: 44px 32px 44px 32px;
       margin-bottom: var(--spacing);
       border-radius: var(--border-radius);
@@ -212,7 +212,7 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 14px;
-      background: rgba(40,40,40,0.85);
+      background: #161616;
       color: var(--text);
       box-shadow: var(--shadow);
       border-radius: var(--border-radius);
@@ -253,13 +253,7 @@
       gap: 8px;
       margin-bottom: 10px;
       min-width: 120px;
-      background: rgba(40,40,40,0.85);
-      border-radius: 16px;
-      box-shadow: 0 2px 16px #0002;
       padding: 8px 0 10px 0;
-      border: var(--glass-border);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
     }
 
     .pie-chart-col canvas {
@@ -282,13 +276,7 @@
 
     .moment-block {
       margin-bottom: 28px;
-      background: rgba(40,40,40,0.85);
-      border-radius: 18px;
       padding: 18px 10px 10px 10px;
-      box-shadow: var(--shadow);
-      border: var(--glass-border);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
     }
 
     .moment-title {
@@ -350,8 +338,8 @@
       </label>
     </div>
     <div class="tab-content active" id="tab-producten">
-      <div class="card">
-        <h2>Nieuw product toevoegen</h2>
+      <div style="margin-bottom: var(--spacing);">
+        <h2 style="margin-bottom:18px;">Nieuw product toevoegen</h2>
         <label>Naam product:</label>
         <input type="text" id="productNaam">
         <label>Kcal / 100g:</label>
@@ -370,13 +358,13 @@
         <input type="number" id="productEiwit">
         <button onclick="addProduct()">Toevoegen</button>
       </div>
-      <div class="card">
-        <h2>Mijn producten</h2>
+      <div style="margin-bottom: var(--spacing);">
+        <h2 style="margin-bottom:18px;">Mijn producten</h2>
         <div id="productList"></div>
       </div>
     </div>
     <div class="tab-content" id="tab-dagboek">
-      <div class="card" style="margin-bottom:12px;">
+      <div style="margin-bottom:12px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:18px;font-size:1.13em;font-weight:600;">
           <button onclick="changeDagboekDag(-1)" style="background:none;border:none;color:var(--accent-glow);font-size:1.5em;cursor:pointer;">&#8592;</button>
           <span id="dagboekDatum"></span>
@@ -536,7 +524,7 @@
       } else {
         // Cards op mobiel
         let cards = producten.map((p,i) => `
-          <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:12px;padding:12px 10px;">
+          <div style="border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:12px;padding:12px 10px;background:#161616;">
             <div style="font-weight:bold;font-size:1.08em;margin-bottom:4px;">${p.naam}</div>
             <div>Kcal: <b>${p.kcal}</b> | Vet: <b>${p.vet}</b> | Verz. vet: <b>${p.verzadigd}</b></div>
             <div>Kh: <b>${p.kh}</b> | Suiker: <b>${p.suiker}</b> | Vezel: <b>${p.vezel}</b> | Eiwit: <b>${p.eiwit}</b></div>
@@ -607,7 +595,8 @@
         let entries = momenten[moment];
         // Som per moment
         let totaal = { kcal:0, vet:0, verzadigd:0, kh:0, suiker:0, vezel:0, eiwit:0 };
-        html += `<div class='moment-block'><div class='moment-title'>${moment}</div>`;
+        html += `<div class='moment-block' style='background:#161616;'>
+          <div class='moment-title'>${moment}</div>`;
         if(!isMobile) {
           html += `<table><thead><tr><th>Product</th><th>Gram</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
         }
@@ -634,14 +623,14 @@
               <td>${((p.eiwit||0)*g).toFixed(1)}</td>
             </tr>`;
           } else {
-            html += `<div style=\"background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:10px;padding:10px 8px;\">\n              <div style=\"font-weight:bold;\">${p.naam||''}</div>\n              <div>Gram: <b>${e.gram}</b></div>\n              <div>Kcal: <b>${((p.kcal||0)*g).toFixed(1)}</b> | Vet: <b>${((p.vet||0)*g).toFixed(1)}</b> | Verz. vet: <b>${((p.verzadigd||0)*g).toFixed(1)}</b></div>\n              <div>Kh: <b>${((p.kh||0)*g).toFixed(1)}</b> | Suiker: <b>${((p.suiker||0)*g).toFixed(1)}</b> | Vezel: <b>${((p.vezel||0)*g).toFixed(1)}</b> | Eiwit: <b>${((p.eiwit||0)*g).toFixed(1)}</b></div>\n            </div>`;
+            html += `<div style=\"border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:10px;padding:10px 8px;background:#161616;\">\n              <div style=\"font-weight:bold;\">${p.naam||''}</div>\n              <div>Gram: <b>${e.gram}</b></div>\n              <div>Kcal: <b>${((p.kcal||0)*g).toFixed(1)}</b> | Vet: <b>${((p.vet||0)*g).toFixed(1)}</b> | Verz. vet: <b>${((p.verzadigd||0)*g).toFixed(1)}</b></div>\n              <div>Kh: <b>${((p.kh||0)*g).toFixed(1)}</b> | Suiker: <b>${((p.suiker||0)*g).toFixed(1)}</b> | Vezel: <b>${((p.vezel||0)*g).toFixed(1)}</b> | Eiwit: <b>${((p.eiwit||0)*g).toFixed(1)}</b></div>\n            </div>`;
           }
         });
         if(!isMobile) {
           html += `<tr style='font-weight:bold;background:#f0f0fa;'><td>Totaal</td><td></td><td>${totaal.kcal.toFixed(1)}</td><td>${totaal.vet.toFixed(1)}</td><td>${totaal.verzadigd.toFixed(1)}</td><td>${totaal.kh.toFixed(1)}</td><td>${totaal.suiker.toFixed(1)}</td><td>${totaal.vezel.toFixed(1)}</td><td>${totaal.eiwit.toFixed(1)}</td></tr>`;
           html += '</tbody></table>';
         } else {
-          html += `<div style='font-weight:bold;background:#f0f0fa;border-radius:8px;padding:8px 8px 4px 8px;margin-bottom:8px;'>Totaal: Kcal <b>${totaal.kcal.toFixed(1)}</b> | Vet <b>${totaal.vet.toFixed(1)}</b> | Verz. vet <b>${totaal.verzadigd.toFixed(1)}</b> | Kh <b>${totaal.kh.toFixed(1)}</b> | Suiker <b>${totaal.suiker.toFixed(1)}</b> | Vezel <b>${totaal.vezel.toFixed(1)}</b> | Eiwit <b>${totaal.eiwit.toFixed(1)}</b></div>`;
+          html += `<div style='font-weight:bold;background:#161616;border-radius:8px;padding:8px 8px 4px 8px;margin-bottom:8px;'>Totaal: Kcal <b>${totaal.kcal.toFixed(1)}</b> | Vet <b>${totaal.vet.toFixed(1)}</b> | Verz. vet <b>${totaal.verzadigd.toFixed(1)}</b> | Kh <b>${totaal.kh.toFixed(1)}</b> | Suiker <b>${totaal.suiker.toFixed(1)}</b> | Vezel <b>${totaal.vezel.toFixed(1)}</b> | Eiwit <b>${totaal.eiwit.toFixed(1)}</b></div>`;
         }
         html += '</div>';
       });
@@ -675,7 +664,7 @@
         let value = Math.min(totaal[d.key], doelen[d.key]);
         let rest = Math.max(doelen[d.key] - totaal[d.key], 0);
         let id = 'pie_' + d.key;
-        pieChartsRow += `<div class='pie-chart-col' style='flex-direction:column;align-items:center;min-width:120px;margin-bottom:18px;'>
+        pieChartsRow += `<div class='pie-chart-col' style='flex-direction:column;align-items:center;min-width:120px;margin-bottom:18px;background:#161616;'>
           <div style='position:relative;display:inline-block;'>
             <canvas id='${id}' width='100' height='100'></canvas>
             <span style='position:absolute;left:0;top:0;width:100px;height:100px;display:flex;align-items:center;justify-content:center;font-size:1em;font-weight:600;pointer-events:none;letter-spacing:-1px;color:var(--accent-glow);'>${value.toFixed(0)}/${doelen[d.key]}</span>
