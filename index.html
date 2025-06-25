@@ -320,6 +320,24 @@
       .pie-chart-col canvas { width: 90vw !important; height: 90vw !important; max-width: 180px !important; max-height: 180px !important; }
       .pie-chart-col { min-width: unset; }
     }
+    .toevoegen-btn {
+      background: #161616;
+      color: var(--accent-glow);
+      border: 1.5px solid #232323;
+      border-radius: var(--border-radius);
+      padding: 14px 28px;
+      font-size: 1em;
+      font-weight: 600;
+      box-shadow: 0 2px 12px #0004;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    .toevoegen-btn:hover {
+      background: #232323;
+      color: #fff;
+      box-shadow: 0 4px 18px #0006;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
@@ -356,7 +374,7 @@
         <input type="number" id="productVezel">
         <label>Eiwit / 100g:</label>
         <input type="number" id="productEiwit">
-        <button onclick="addProduct()">Toevoegen</button>
+        <button class="toevoegen-btn" onclick="addProduct()">Toevoegen</button>
       </div>
       <div style="margin-bottom: var(--spacing);">
         <h2 style="margin-bottom:18px;">Mijn producten</h2>
@@ -389,7 +407,7 @@
           <select id="eetProduct"></select>
           <label>Gram:</label>
           <input type="number" id="eetGram">
-          <button onclick="logEten()">Toevoegen</button>
+          <button class="toevoegen-btn" onclick="logEten()">Toevoegen</button>
         </div>
         <div class="card">
           <h2>Dagboek</h2>
@@ -497,45 +515,24 @@
       loadData();
     }
     function renderProducten() {
-      if(producten.length === 0) {
-        document.getElementById('productList').innerHTML = '<em>Geen producten toegevoegd.</em>';
-        return;
-      }
-      let isMobile = window.innerWidth <= 700;
-      if(!isMobile) {
-        let table = `<table><thead><tr><th>Naam</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th><th>Acties</th></tr></thead><tbody>`;
-        table += producten.map((p,i) => `
-          <tr>
-            <td>${p.naam}</td>
-            <td>${p.kcal}</td>
-            <td>${p.vet}</td>
-            <td>${p.verzadigd}</td>
-            <td>${p.kh}</td>
-            <td>${p.suiker}</td>
-            <td>${p.vezel}</td>
-            <td>${p.eiwit}</td>
-            <td class='product-actions'>
-              <button onclick="editProduct(${i})">✏️</button>
-              <button onclick="deleteProduct(${i})">🗑️</button>
-            </td>
-          </tr>`).join('');
-        table += '</tbody></table>';
-        document.getElementById('productList').innerHTML = table;
-      } else {
-        // Cards op mobiel
-        let cards = producten.map((p,i) => `
-          <div style="border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:12px;padding:12px 10px;background:#161616;">
-            <div style="font-weight:bold;font-size:1.08em;margin-bottom:4px;">${p.naam}</div>
-            <div>Kcal: <b>${p.kcal}</b> | Vet: <b>${p.vet}</b> | Verz. vet: <b>${p.verzadigd}</b></div>
-            <div>Kh: <b>${p.kh}</b> | Suiker: <b>${p.suiker}</b> | Vezel: <b>${p.vezel}</b> | Eiwit: <b>${p.eiwit}</b></div>
-            <div class='product-actions' style='margin-top:8px;'>
-              <button onclick="editProduct(${i})">✏️</button>
-              <button onclick="deleteProduct(${i})">🗑️</button>
-            </div>
-          </div>
-        `).join('');
-        document.getElementById('productList').innerHTML = cards;
-      }
+      let table = `<table><thead><tr><th>Naam</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th><th>Acties</th></tr></thead><tbody>`;
+      table += producten.map((p,i) => `
+        <tr>
+          <td>${p.naam}</td>
+          <td>${p.kcal}</td>
+          <td>${p.vet}</td>
+          <td>${p.verzadigd}</td>
+          <td>${p.kh}</td>
+          <td>${p.suiker}</td>
+          <td>${p.vezel}</td>
+          <td>${p.eiwit}</td>
+          <td class='product-actions'>
+            <button onclick="editProduct(${i})">✏️</button>
+            <button onclick="deleteProduct(${i})">🗑️</button>
+          </td>
+        </tr>`).join('');
+      table += '</tbody></table>';
+      document.getElementById('productList').innerHTML = table;
     }
     function renderEetSelect() {
       let search = (document.getElementById('searchProduct')?.value || '').toLowerCase();
