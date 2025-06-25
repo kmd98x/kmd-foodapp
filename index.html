@@ -118,6 +118,23 @@
       font-size: 1em;
     }
 
+    .sqlite-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .sqlite-actions button, .sqlite-actions input[type="file"] {
+      background: #eee;
+      color: #333;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -153,21 +170,22 @@
 
     .pie-chart-col {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      width: 90px;
+      gap: 8px;
+      margin-bottom: 10px;
+      min-width: 120px;
     }
 
     .pie-chart-col canvas {
-      width: 60px !important;
-      height: 60px !important;
-      margin-bottom: 2px;
+      width: 80px !important;
+      height: 80px !important;
+      margin-bottom: 0;
     }
 
     .pie-label {
-      font-size: 0.9em;
-      text-align: center;
-      margin-top: 2px;
+      font-size: 0.95em;
+      text-align: left;
+      min-width: 60px;
     }
 
     .moment-block {
@@ -185,40 +203,40 @@
       color: var(--accent);
     }
 
-    @media (max-width: 1000px) {
+    /* Responsive cards voor producten en dagboek */
+    @media (max-width: 900px) {
       .container { max-width: 100vw; }
       .flex { flex-direction: column; gap: 0; }
       .card { min-width: unset; }
     }
-
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      table { border: none; }
+      thead { display: none; }
+      tr { background: #fff; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+      td { text-align: left; padding: 10px 14px; border: none; border-bottom: 1px solid #f0f0fa; position: relative; }
+      td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #888;
+        display: block;
+        margin-bottom: 2px;
+        font-size: 0.97em;
+      }
+      tr:last-child td { border-bottom: none; }
+      .pie-charts-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .pie-chart-col { flex-direction: row; min-width: unset; }
+      .pie-label { min-width: 0; }
+    }
     @media (max-width: 600px) {
-      .card { padding: 16px 6px; }
-      h1 { font-size: 1.3em; }
+      .card { padding: 12px 2px; }
+      h1 { font-size: 1.1em; }
       .tabs button { font-size: 1em; padding: 10px 10px; }
-      .pie-chart-col { width: 70px; }
-      .pie-chart-col canvas { width: 40px !important; height: 40px !important; }
+      .pie-chart-col canvas { width: 56px !important; height: 56px !important; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- TODO: Vul hieronder je eigen Firebase config in -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script>
-    // TODO: Vervang dit door je eigen Firebase config!
-    const firebaseConfig = {
-      apiKey: "JOUW_API_KEY",
-      authDomain: "JOUW_PROJECT_ID.firebaseapp.com",
-      projectId: "JOUW_PROJECT_ID",
-      storageBucket: "JOUW_PROJECT_ID.appspot.com",
-      messagingSenderId: "JOUW_SENDER_ID",
-      appId: "JOUW_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    // Je mag de collectie-namen aanpassen als je wilt
-    const productenRef = db.collection('producten');
-    const dagboekRef = db.collection('dagboek');
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 </head>
 <body>
   <h1>Mijn Eetdagboek</h1>
@@ -227,6 +245,13 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="openTab(0)">📦 Producten</button>
       <button class="tab-btn" onclick="openTab(1)">🍽️ Dagboek</button>
+    </div>
+    <div class="sqlite-actions">
+      <button onclick="exportDB()">Database exporteren</button>
+      <label style="display:inline-block;cursor:pointer;">
+        <input type="file" id="importFile" style="display:none" onchange="importDB(event)">
+        Database importeren
+      </label>
     </div>
     <div class="tab-content active" id="tab-producten">
       <div class="card">
@@ -288,7 +313,7 @@
   </div>
 
   <script>
-    // Doelen (kan je aanpassen)
+    let db, SQL;
     const doelen = {
       kcal: 1600,
       vet: 59,
@@ -298,21 +323,38 @@
       vezel: 30,
       eiwit: 120
     };
-    let producten = [];
-    let dagboek = [];
     let pieCharts = {};
     let editIndex = null;
-    // Firebase sync
-    productenRef.onSnapshot(snapshot => {
-      producten = snapshot.docs.map(doc => ({...doc.data(), id: doc.id}));
+    let producten = [];
+    let dagboek = [];
+    // Init sql.js
+    window.initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` }).then(SQLLib => {
+      SQL = SQLLib;
+      if(window.localStorage.getItem('sqlite_db')) {
+        db = new SQL.Database(Uint8Array.from(atob(localStorage.getItem('sqlite_db')), c => c.charCodeAt(0)));
+      } else {
+        db = new SQL.Database();
+        db.run(`CREATE TABLE IF NOT EXISTS producten (id INTEGER PRIMARY KEY AUTOINCREMENT, naam TEXT, kcal REAL, vet REAL, verzadigd REAL, kh REAL, suiker REAL, vezel REAL, eiwit REAL);
+                CREATE TABLE IF NOT EXISTS dagboek (id INTEGER PRIMARY KEY AUTOINCREMENT, product_id INTEGER, gram REAL, moment TEXT, tijd INTEGER);`);
+      }
+      loadData();
+    });
+    function saveDB() {
+      const data = db.export();
+      localStorage.setItem('sqlite_db', btoa(String.fromCharCode(...data)));
+    }
+    function loadData() {
+      producten = db.exec('SELECT * FROM producten')[0]?.values.map(row => {
+        return { id: row[0], naam: row[1], kcal: row[2], vet: row[3], verzadigd: row[4], kh: row[5], suiker: row[6], vezel: row[7], eiwit: row[8] };
+      }) || [];
+      dagboek = db.exec('SELECT * FROM dagboek')[0]?.values.map(row => {
+        return { id: row[0], product_id: row[1], gram: row[2], moment: row[3], tijd: row[4] };
+      }) || [];
       renderProducten();
       renderEetSelect();
-    });
-    dagboekRef.onSnapshot(snapshot => {
-      dagboek = snapshot.docs.map(doc => ({...doc.data(), id: doc.id}));
       renderDagboek();
       renderOverzicht();
-    });
+    }
     function openTab(idx) {
       document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
       document.querySelectorAll('.tab-content').forEach((tab,i) => tab.classList.toggle('active', i===idx));
@@ -329,11 +371,13 @@
       let vezel = parseFloat(document.getElementById('productVezel').value) || 0;
       let eiwit = parseFloat(document.getElementById('productEiwit').value) || 0;
       if(editIndex !== null) {
-        productenRef.doc(editIndex).update({ naam, kcal, vet, verzadigd, kh, suiker, vezel, eiwit });
+        db.run(`UPDATE producten SET naam=?, kcal=?, vet=?, verzadigd=?, kh=?, suiker=?, vezel=?, eiwit=? WHERE id=?`, [naam, kcal, vet, verzadigd, kh, suiker, vezel, eiwit, producten[editIndex].id]);
         editIndex = null;
       } else {
-        productenRef.add({ naam, kcal, vet, verzadigd, kh, suiker, vezel, eiwit });
+        db.run(`INSERT INTO producten (naam, kcal, vet, verzadigd, kh, suiker, vezel, eiwit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [naam, kcal, vet, verzadigd, kh, suiker, vezel, eiwit]);
       }
+      saveDB();
+      loadData();
       document.getElementById('productNaam').value = '';
       document.getElementById('productKcal').value = '';
       document.getElementById('productVet').value = '';
@@ -343,8 +387,8 @@
       document.getElementById('productVezel').value = '';
       document.getElementById('productEiwit').value = '';
     }
-    function editProduct(id) {
-      let p = producten.find(p => p.id === id);
+    function editProduct(i) {
+      let p = producten[i];
       document.getElementById('productNaam').value = p.naam;
       document.getElementById('productKcal').value = p.kcal;
       document.getElementById('productVet').value = p.vet;
@@ -353,48 +397,69 @@
       document.getElementById('productSuiker').value = p.suiker;
       document.getElementById('productVezel').value = p.vezel;
       document.getElementById('productEiwit').value = p.eiwit;
-      editIndex = id;
+      editIndex = i;
     }
-    function deleteProduct(id) {
-      productenRef.doc(id).delete();
+    function deleteProduct(i) {
+      db.run(`DELETE FROM producten WHERE id=?`, [producten[i].id]);
+      saveDB();
+      loadData();
     }
     function renderProducten() {
       if(producten.length === 0) {
         document.getElementById('productList').innerHTML = '<em>Geen producten toegevoegd.</em>';
         return;
       }
-      let table = `<table><thead><tr><th>Naam</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th><th>Acties</th></tr></thead><tbody>`;
-      table += producten.map(p => `
-        <tr>
-          <td>${p.naam}</td>
-          <td>${p.kcal}</td>
-          <td>${p.vet}</td>
-          <td>${p.verzadigd}</td>
-          <td>${p.kh}</td>
-          <td>${p.suiker}</td>
-          <td>${p.vezel}</td>
-          <td>${p.eiwit}</td>
-          <td class='product-actions'>
-            <button onclick="editProduct('${p.id}')">✏️</button>
-            <button onclick="deleteProduct('${p.id}')">🗑️</button>
-          </td>
-        </tr>`).join('');
-      table += '</tbody></table>';
-      document.getElementById('productList').innerHTML = table;
+      let isMobile = window.innerWidth <= 700;
+      if(!isMobile) {
+        let table = `<table><thead><tr><th>Naam</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th><th>Acties</th></tr></thead><tbody>`;
+        table += producten.map((p,i) => `
+          <tr>
+            <td>${p.naam}</td>
+            <td>${p.kcal}</td>
+            <td>${p.vet}</td>
+            <td>${p.verzadigd}</td>
+            <td>${p.kh}</td>
+            <td>${p.suiker}</td>
+            <td>${p.vezel}</td>
+            <td>${p.eiwit}</td>
+            <td class='product-actions'>
+              <button onclick="editProduct(${i})">✏️</button>
+              <button onclick="deleteProduct(${i})">🗑️</button>
+            </td>
+          </tr>`).join('');
+        table += '</tbody></table>';
+        document.getElementById('productList').innerHTML = table;
+      } else {
+        // Cards op mobiel
+        let cards = producten.map((p,i) => `
+          <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:12px;padding:12px 10px;">
+            <div style="font-weight:bold;font-size:1.08em;margin-bottom:4px;">${p.naam}</div>
+            <div>Kcal: <b>${p.kcal}</b> | Vet: <b>${p.vet}</b> | Verz. vet: <b>${p.verzadigd}</b></div>
+            <div>Kh: <b>${p.kh}</b> | Suiker: <b>${p.suiker}</b> | Vezel: <b>${p.vezel}</b> | Eiwit: <b>${p.eiwit}</b></div>
+            <div class='product-actions' style='margin-top:8px;'>
+              <button onclick="editProduct(${i})">✏️</button>
+              <button onclick="deleteProduct(${i})">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('productList').innerHTML = cards;
+      }
     }
     function renderEetSelect() {
       let search = (document.getElementById('searchProduct')?.value || '').toLowerCase();
       let filtered = producten.filter(p => p.naam.toLowerCase().includes(search));
-      let options = filtered.map((p, i) => `<option value='${p.id}'>${p.naam}</option>`).join('');
+      let options = filtered.map((p, i) => `<option value='${i}'>${p.naam}</option>`).join('');
       document.getElementById('eetProduct').innerHTML = options;
     }
     function logEten() {
-      let productId = document.getElementById('eetProduct').value;
+      let productIndex = document.getElementById('eetProduct').value;
       let gram = parseFloat(document.getElementById('eetGram').value) || 0;
       let moment = document.getElementById('eetMoment').value;
-      let p = producten.find(p => p.id === productId);
+      let p = producten[productIndex];
       if(!p || !gram) return;
-      dagboekRef.add({ product: p, gram, moment, tijd: Date.now() });
+      db.run(`INSERT INTO dagboek (product_id, gram, moment, tijd) VALUES (?, ?, ?, ?)`, [p.id, gram, moment, Date.now()]);
+      saveDB();
+      loadData();
       document.getElementById('eetGram').value = '';
     }
     function renderDagboek() {
@@ -402,6 +467,7 @@
         document.getElementById('dagboekList').innerHTML = '<em>Geen producten gegeten.</em>';
         return;
       }
+      let isMobile = window.innerWidth <= 700;
       // Groepeer per moment
       let momenten = {};
       dagboek.forEach(e => {
@@ -413,49 +479,63 @@
         let entries = momenten[moment];
         // Som per moment
         let totaal = { kcal:0, vet:0, verzadigd:0, kh:0, suiker:0, vezel:0, eiwit:0 };
-        entries.forEach(e => {
-          let g = e.gram/100;
-          totaal.kcal += e.product.kcal * g;
-          totaal.vet += e.product.vet * g;
-          totaal.verzadigd += e.product.verzadigd * g;
-          totaal.kh += e.product.kh * g;
-          totaal.suiker += e.product.suiker * g;
-          totaal.vezel += e.product.vezel * g;
-          totaal.eiwit += e.product.eiwit * g;
-        });
         html += `<div class='moment-block'><div class='moment-title'>${moment}</div>`;
-        html += `<table><thead><tr><th>Product</th><th>Gram</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
-        html += entries.map(e => {
-          let p = e.product;
+        if(!isMobile) {
+          html += `<table><thead><tr><th>Product</th><th>Gram</th><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
+        }
+        entries.forEach(e => {
+          let p = producten.find(x => x.id === e.product_id) || {};
           let g = e.gram/100;
-          return `<tr>
-            <td>${p.naam}</td>
-            <td>${e.gram}</td>
-            <td>${(p.kcal*g).toFixed(1)}</td>
-            <td>${(p.vet*g).toFixed(1)}</td>
-            <td>${(p.verzadigd*g).toFixed(1)}</td>
-            <td>${(p.kh*g).toFixed(1)}</td>
-            <td>${(p.suiker*g).toFixed(1)}</td>
-            <td>${(p.vezel*g).toFixed(1)}</td>
-            <td>${(p.eiwit*g).toFixed(1)}</td>
-          </tr>`;
-        }).join('');
-        html += `<tr style='font-weight:bold;background:#f0f0fa;'><td>Totaal</td><td></td><td>${totaal.kcal.toFixed(1)}</td><td>${totaal.vet.toFixed(1)}</td><td>${totaal.verzadigd.toFixed(1)}</td><td>${totaal.kh.toFixed(1)}</td><td>${totaal.suiker.toFixed(1)}</td><td>${totaal.vezel.toFixed(1)}</td><td>${totaal.eiwit.toFixed(1)}</td></tr>`;
-        html += '</tbody></table></div>';
+          totaal.kcal += (p.kcal||0) * g;
+          totaal.vet += (p.vet||0) * g;
+          totaal.verzadigd += (p.verzadigd||0) * g;
+          totaal.kh += (p.kh||0) * g;
+          totaal.suiker += (p.suiker||0) * g;
+          totaal.vezel += (p.vezel||0) * g;
+          totaal.eiwit += (p.eiwit||0) * g;
+          if(!isMobile) {
+            html += `<tr>
+              <td>${p.naam||''}</td>
+              <td>${e.gram}</td>
+              <td>${((p.kcal||0)*g).toFixed(1)}</td>
+              <td>${((p.vet||0)*g).toFixed(1)}</td>
+              <td>${((p.verzadigd||0)*g).toFixed(1)}</td>
+              <td>${((p.kh||0)*g).toFixed(1)}</td>
+              <td>${((p.suiker||0)*g).toFixed(1)}</td>
+              <td>${((p.vezel||0)*g).toFixed(1)}</td>
+              <td>${((p.eiwit||0)*g).toFixed(1)}</td>
+            </tr>`;
+          } else {
+            html += `<div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:10px;padding:10px 8px;">
+              <div style="font-weight:bold;">${p.naam||''}</div>
+              <div>Gram: <b>${e.gram}</b></div>
+              <div>Kcal: <b>${((p.kcal||0)*g).toFixed(1)}</b> | Vet: <b>${((p.vet||0)*g).toFixed(1)}</b> | Verz. vet: <b>${((p.verzadigd||0)*g).toFixed(1)}</b></div>
+              <div>Kh: <b>${((p.kh||0)*g).toFixed(1)}</b> | Suiker: <b>${((p.suiker||0)*g).toFixed(1)}</b> | Vezel: <b>${((p.vezel||0)*g).toFixed(1)}</b> | Eiwit: <b>${((p.eiwit||0)*g).toFixed(1)}</b></div>
+            </div>`;
+          }
+        });
+        if(!isMobile) {
+          html += `<tr style='font-weight:bold;background:#f0f0fa;'><td>Totaal</td><td></td><td>${totaal.kcal.toFixed(1)}</td><td>${totaal.vet.toFixed(1)}</td><td>${totaal.verzadigd.toFixed(1)}</td><td>${totaal.kh.toFixed(1)}</td><td>${totaal.suiker.toFixed(1)}</td><td>${totaal.vezel.toFixed(1)}</td><td>${totaal.eiwit.toFixed(1)}</td></tr>`;
+          html += '</tbody></table>';
+        } else {
+          html += `<div style='font-weight:bold;background:#f0f0fa;border-radius:8px;padding:8px 8px 4px 8px;margin-bottom:8px;'>Totaal: Kcal <b>${totaal.kcal.toFixed(1)}</b> | Vet <b>${totaal.vet.toFixed(1)}</b> | Verz. vet <b>${totaal.verzadigd.toFixed(1)}</b> | Kh <b>${totaal.kh.toFixed(1)}</b> | Suiker <b>${totaal.suiker.toFixed(1)}</b> | Vezel <b>${totaal.vezel.toFixed(1)}</b> | Eiwit <b>${totaal.eiwit.toFixed(1)}</b></div>`;
+        }
+        html += '</div>';
       });
       document.getElementById('dagboekList').innerHTML = html;
     }
     function renderOverzicht() {
       let totaal = { kcal: 0, vet: 0, verzadigd: 0, kh: 0, suiker: 0, vezel: 0, eiwit: 0 };
       dagboek.forEach(e => {
+        let p = producten.find(x => x.id === e.product_id) || {};
         let g = e.gram/100;
-        totaal.kcal += e.product.kcal * g;
-        totaal.vet += e.product.vet * g;
-        totaal.verzadigd += e.product.verzadigd * g;
-        totaal.kh += e.product.kh * g;
-        totaal.suiker += e.product.suiker * g;
-        totaal.vezel += e.product.vezel * g;
-        totaal.eiwit += e.product.eiwit * g;
+        totaal.kcal += (p.kcal||0) * g;
+        totaal.vet += (p.vet||0) * g;
+        totaal.verzadigd += (p.verzadigd||0) * g;
+        totaal.kh += (p.kh||0) * g;
+        totaal.suiker += (p.suiker||0) * g;
+        totaal.vezel += (p.vezel||0) * g;
+        totaal.eiwit += (p.eiwit||0) * g;
       });
       // Pie charts voor alle voedingswaarden
       let pieData = [
@@ -472,7 +552,13 @@
         let value = Math.min(totaal[d.key], doelen[d.key]);
         let rest = Math.max(doelen[d.key] - totaal[d.key], 0);
         let id = 'pie_' + d.key;
-        pieChartsRow += `<div class='pie-chart-col'><canvas id='${id}' width='60' height='60'></canvas><div class='pie-label'>${d.label}</div></div>`;
+        pieChartsRow += `<div class='pie-chart-col' style='flex-direction:column;align-items:center;min-width:100px;margin-bottom:18px;'>
+          <div style='position:relative;display:inline-block;'>
+            <canvas id='${id}' width='80' height='80'></canvas>
+            <span style='position:absolute;left:0;top:0;width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:0.92em;font-weight:500;pointer-events:none;letter-spacing:-1px;'>${value.toFixed(0)}/${doelen[d.key]}</span>
+          </div>
+          <span class='pie-label' style='margin-top:8px;font-size:1.05em;'>${d.label}</span>
+        </div>`;
         setTimeout(() => {
           let ctx = document.getElementById(id).getContext('2d');
           if(pieCharts[d.key]) pieCharts[d.key].destroy();
@@ -495,24 +581,34 @@
         }, 0);
       });
       document.getElementById('pieCharts').innerHTML = pieChartsRow;
-      // Tabel met alle totalen
-      let table = `<table><thead><tr><th>Kcal</th><th>Vet</th><th>Verz. vet</th><th>Kh</th><th>Suiker</th><th>Vezel</th><th>Eiwit</th></tr></thead><tbody>`;
-      table += `<tr>
-        <td>${totaal.kcal.toFixed(1)} / ${doelen.kcal}</td>
-        <td>${totaal.vet.toFixed(1)} / ${doelen.vet}</td>
-        <td>${totaal.verzadigd.toFixed(1)} / ${doelen.verzadigd}</td>
-        <td>${totaal.kh.toFixed(1)} / ${doelen.kh}</td>
-        <td>${totaal.suiker.toFixed(1)} / ${doelen.suiker}</td>
-        <td>${totaal.vezel.toFixed(1)} / ${doelen.vezel}</td>
-        <td>${totaal.eiwit.toFixed(1)} / ${doelen.eiwit}</td>
-      </tr></tbody></table>`;
-      document.getElementById('overzichtData').innerHTML = table;
+      document.getElementById('overzichtData').innerHTML = '';
     }
-    // Initial rendering
-    renderProducten();
-    renderEetSelect();
-    renderDagboek();
-    renderOverzicht();
+    // Export/import
+    function exportDB() {
+      const data = db.export();
+      const blob = new Blob([data], {type: 'application/octet-stream'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'database.sqlite';
+      a.click();
+    }
+    function importDB(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        db = new SQL.Database(new Uint8Array(ev.target.result));
+        saveDB();
+        loadData();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    // Herteken bij resize voor responsive
+    window.addEventListener('resize', () => {
+      renderProducten();
+      renderDagboek();
+      renderOverzicht();
+    });
   </script>
 </body>
 </html>
